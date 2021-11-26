@@ -12,35 +12,35 @@ import numpy as np
 
 
 # ------ Elements ------
-def elements(model1, model2, model3, model4, mass, ms):
+def elements(model1, model2, model3, model4):
 
     # ------ Set Plot Style ------
     default_style()
 
-    if ms == True:
-        # main sequence limit
-        lim1 = model1.mainsequence()
-        lim2 = model2.mainsequence()
-        lim3 = model3.mainsequence()
-        lim4 = model4.mainsequence()
-        folder = 'MainSequence'
-    else:
-        # full simulation
-        lim1 = model1.end()
-        lim2 = model2.end()
-        lim3 = model3.end()
-        lim4 = model4.end()
-        folder = 'FullSimulation'
+    #if ms == True:
+    # main sequence limit
+    lim1 = model1.mainsequence()
+    lim2 = model2.mainsequence()
+    lim3 = model3.mainsequence()
+    lim4 = model4.mainsequence()
+    folder = 'MainSequence'
+    # else:
+    #     # full simulation
+    #     lim1 = model1.end()
+    #     lim2 = model2.end()
+    #     lim3 = model3.end()
+    #     lim4 = model4.end()
+    #     folder = 'FullSimulation'
 
     # ------ Figure ------
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2,2, figsize=(9,6.5))
     
-    if ms == True:
-        fig.suptitle(f'Main Sequence: {mass}''M$_{\odot}$', fontweight='bold')
-        limit = '_ms'
-    else:
-        fig.suptitle(f'Full Evolution: {mass}''M$_{\odot}$', fontweight='bold')
-        limit = ''
+    #if ms == True:
+    # fig.suptitle(f'Main Sequence: {mass}''M$_{\odot}$', fontweight='bold')
+    # limit = '_ms'
+    # else:
+    #     fig.suptitle(f'Full Evolution: {mass}''M$_{\odot}$', fontweight='bold')
+    #     limit = ''
 
     # ------ Plot 1 ------
     ax1.plot(model1.age[0:lim1], model1.lognh1[0:lim1], label = 'Vink 01', color = 'navy')
@@ -84,4 +84,7 @@ def elements(model1, model2, model3, model4, mass, ms):
     ax4.set_title('Surface Nitrogen')
     
     plt.tight_layout()
-    plt.savefig(f'Plots/{datafolder}/Subplots/Elements/{folder}/elem{mass}{limit}.png', dpi=200)
+    plt.show()
+    #plt.savefig(f'Plots/{datafolder}/Subplots/Elements/{folder}/elem{mass}{limit}.png', dpi=200)
+
+elements(mod1,mod2,mod3,mod4)
