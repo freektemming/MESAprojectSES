@@ -153,23 +153,14 @@ def hunter(mass):
 
     return fig, ax, colormap
     
-def kippenhahn(number, mass):
+def kippenhahn(mass):
     
     colormap = plt.cm.cividis_r
     colormap = plt.cm.cubehelix
     fig, ax = plt.subplots(1,1)
 
-    if number == '1':
-        model = 'Vink 01 Model'
-    if number == '2':
-        model = 'Vink 18 Model'
-    if number == '3':
-        model = 'Leuven Model'
-    if number == '4':
-        model = 'Krticka Model'
-
     ax.set_ylabel('m / M$_{\star}$')
-    ax.set_title(f'Mass Fractions {model}: {mass}M''$_{\odot}$')
+    ax.set_title(f'Mass Fractions: {mass}M''$_{\odot}$')
 
     #ax.set_xticks([0.0648,3.12,4.76])
     #ax.set_xticklabels(['Zams', 'Mid','Tams'])

@@ -95,6 +95,8 @@ class Data:
         self.ntoth1 = self.toth1 / np.max(self.M) * self.nmass
         self.tothe = data[self.x:,72]
         self.ntothe = self.tothe / np.max(self.M) * self.nmass
+        self.ntotc = self.centerc / np.max(self.M) * self.nmass
+        
 
         # surface elements
         self.logh1 = data[self.x:,69]
@@ -113,7 +115,7 @@ class Data:
         self.lognox = np.log10(self.nox)
         self.car = data[self.x:,65]  # C12
         self.ncar = self.car / np.max(self.M) * self.nmass
-        self.logncar = np.log10(self.ncar)
+        self.logncar = np.log10(self.ncar)     
 
         self.lognit = np.log10(self.nit/(14*self.h1)) + 12
         self.nith = self.nit/self.h1
