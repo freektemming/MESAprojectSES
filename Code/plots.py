@@ -11,7 +11,8 @@ def HRD(model):
     colormap = plt.cm.plasma
     fig, ax = plt.subplots(1,1)
 
-    ax.set_xlim(60,0)
+    #ax.set_xlim()
+    ax.invert_xaxis()
     ax.set_xlabel('T$_{\mathregular{eff}}$ [kK]')
     ax.set_ylabel('log (L / L$_{\odot}$)')
     ax.set_title(f'Hertzsprung Russell Diagram: {model}')
