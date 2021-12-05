@@ -1,13 +1,16 @@
-# plotstyles 
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
 def default_style():
+    """
+    Set style properties default style
+    """
 
     plt.style.use('default')
     plt.rc('axes', unicode_minus=False) # using font minus sine
     mpl.rcParams['font.family'] = "Tw Cen MT"
+    plt.rcParams['font.size'] = 12
     mpl.rcParams['patch.linewidth'] = .8
     plt.rcParams['xtick.major.size'] = 3.0
     plt.rcParams['xtick.minor.size'] = 3.0
@@ -19,7 +22,11 @@ def default_style():
     plt.rcParams['ytick.direction'] = 'in'
     #plt.minorticks_on()
 
+
 def histogramstyle():
+    """
+    Set style properties histogram style
+    """
 
     plt.style.use('default')
     plt.rc('axes', unicode_minus=False) # using font minus sine
@@ -36,8 +43,10 @@ def histogramstyle():
     #plt.minorticks_on()
 
 
-
 def science_style():
+    """
+    Set style properties science style with latex font
+    """
 
     plt.style.use('default')
     plt.rcParams["axes.labelweight"] = "light"
