@@ -8,7 +8,7 @@ from .plotfunctions import *
 import numpy as np
 import matplotlib.pyplot as plt
 
-def plot(model, elements):
+def plot(model, elements, zoom):
     """
     Creates abundence of user input elements over time
 
@@ -17,8 +17,8 @@ def plot(model, elements):
     """
 
     TITLE = f"{' '.join([str(elem) for elem in elements])} abundance"
-    X_LABEL = 'Time'
-    Y_LABEL = 'Mass Fraction' 
+    X_LABEL = 'Time [Myr]'
+    Y_LABEL = 'Mass Fraction [m/M$_{\star}$]' 
     ISOTOPES = {
         'H': 'center_h1',
         'He': 'center_he4',
@@ -28,10 +28,16 @@ def plot(model, elements):
 
     # Make figure
     fig, ax = set_fig(TITLE, X_LABEL, Y_LABEL)
-
+    
+    # abundance on main sequence
+    if zoom == True:
+        row_start, row_end = get_helium_burning_phase(model)
+    
     # Abundance on main sequence
-    row_start, row_end = get_main_sequence(model)
-    x = model.hist.data['star_age'][row_start:row_end]
+    else:
+        row_start, row_end = get_main_sequence(model)
+
+    x = model.hist.data['star_age'][row_start:row_end] / 1000000 #HARDCODE
     for element in elements:
         ax.plot(
             x, 

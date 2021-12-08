@@ -43,3 +43,20 @@ def get_main_sequence(model):
         index += 1
 
     return 0, -1
+
+def get_helium_burning_phase(model):
+    """
+    Get rows starting from the helium burning phase
+
+    Input:
+    model : mesaplot
+    """
+
+    index = 0
+    for center_h in model.hist.data['center_h1']:
+
+        # When hydrogen is burned up in the core
+        if center_h < 0.01:
+            return index, -1
+
+        index += 1
