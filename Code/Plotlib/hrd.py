@@ -35,7 +35,7 @@ def plot(model, save=False):
 
     # Main sequence
     row_start, row_end = get_main_sequence(model)
-    age = model.hist.data['star_age']
+    age = model.hist.data['star_age'] / 1000000 # Convert to mega year
     line = set_grad_line(ax, x[row_start:row_end], y[row_start:row_end], age[row_start:row_end], CMAP)
 
     # Pre main sequence
