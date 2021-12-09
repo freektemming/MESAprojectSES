@@ -30,10 +30,10 @@ def plot(models, save=False, custom_labels=None):
 
     # Evolutionary track per model
     for i, model in enumerate(models):
-        # Main sequence
+        # Full track from main sequence
         row_start, row_end = get_main_sequence(model)
-        x = model.hist.data['log_Teff'][row_start:row_end]
-        y = model.hist.data['log_L'][row_start:row_end]
+        x = model.hist.data['log_Teff'][row_start:-1]
+        y = model.hist.data['log_L'][row_start:-1]
 
         # Labels
         if custom_labels:
@@ -41,29 +41,36 @@ def plot(models, save=False, custom_labels=None):
         else:
             label = f"{model.hist.data['star_mass'][0]}" + "M$_{\odot}$"
 
-        ax.plot(x, y, lw=2, label=label)
+        ax.plot(x, y, lw=1, label=label)
 
         # Whole track
         x = model.hist.data['log_Teff']
         y = model.hist.data['log_L']
-        ax.plot(x, y, lw=2, color='k', alpha=0.2)
+        ax.plot(x, y, lw=1, color='k', alpha=0.15)
+
+    ax.plot([], [], lw=1, color='k', alpha=0.2, label="Pre main sequence")
 
     # Lines of constant R
     set_const_R_lines(ax)
 
     # Legend
-    ax.legend(shadow=False, edgecolor='white', fancybox=False)
+    ax.legend(shadow=False, edgecolor='white', fancybox=False, fontsize="small", facecolor='none')
 
     # Axis invert
     ax.invert_xaxis()
 
-    # Show plot
+    # Margin
+    ax.margins(0,0)
+    ax.set_ylim(-4, 6)
+
     fig.tight_layout()
-    plt.show()
 
     # Save
     if save:
-        plt.savefig(f"Output/hrd_multi.png", dpi=200)
+        plt.savefig(f"../Output/hrd_multi_z.png", dpi=200)
+
+    # Show plot
+    plt.show()
 
 
 def set_grad_line(ax, x, y, cmap_vals, cmap):
@@ -98,8 +105,9 @@ def set_const_R_lines(ax):
     ax : axis object
     """
 
-    T_MIN = 3100
-    T_MAX = 35000
+    T_MIN = 10**3.54
+    # T_MAX = 10**4.48
+    T_MAX = 10**4.58
     R_FRACTIONS = [0.01, 0.1, 1, 10, 100]
 
     for r_frac in R_FRACTIONS:
@@ -121,7 +129,7 @@ def set_const_R_lines(ax):
             color='k',
             linestyle='--',
             linewidth=.5,
-            alpha=0.7)
+            alpha=0.3)
 
         # Text
         T=10000
@@ -129,4 +137,6 @@ def set_const_R_lines(ax):
             x=np.log10(T),
             y=np.log10((4 * np.pi * (r_frac*R_SUN)**2 * SIGMA * T**4)/L_SUN),
             s=f"{r_frac}" + "R$_{\odot}$",
-            alpha=0.5)
+            alpha=0.3,
+            fontsize="small",
+            rotation=-15)

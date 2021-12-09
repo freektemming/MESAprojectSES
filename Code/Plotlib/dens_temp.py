@@ -8,6 +8,7 @@ from .plotfunctions import *
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
+from matplotlib.offsetbox import AnchoredOffsetbox, TextArea, HPacker, VPacker
 
 RHO_SUN = 1.41
 T_SUN = 5778
@@ -21,66 +22,56 @@ def plot(model, save=False):
     """
 
     TITLE = f"Central density vs central temperature {model.hist.data['star_mass'][0]}" + "M$_{\odot}$"
-    X_LABEL = 'log ($\\rho$)'
-    Y_LABEL = 'log (T)'  
-    CMAP = plt.get_cmap('cool')  
+    X_LABEL = 'log ($\\rho$) [g cm$^{-3}$]'
+    Y_LABEL = 'log (T) [K]'  
 
     # Make figure
     fig, ax = set_fig(TITLE, X_LABEL, Y_LABEL)
-
-    # Gradient line
-    row_start, row_end = get_main_sequence(model)
-    x = model.hist.data['log_cntr_Rho'][row_start:row_end]
-    y = model.hist.data['log_cntr_T'][row_start:row_end]
-    age = model.hist.data['star_age'][row_start:row_end] / 1000000 # Convert to mega year
-    line = set_grad_line(ax, x, y, age, CMAP)
 
     # Equation of state regimes
     mu =  model.hist.data['center_mu'][0]
     mu_e =  model.hist.data['center_ye'][0]
     set_eos_regimes(ax, mu, mu_e)
 
-    # Colorbar
-    cbar = fig.colorbar(
-        line,
-        cmap=CMAP,
-        ax=ax)
-    cbar.set_label('Age [Myr]')
+    # Full track
+    x = model.hist.data['log_cntr_Rho']
+    y = model.hist.data['log_cntr_T']
+    ax.plot(
+        x, 
+        y, 
+        lw=1, 
+        color='k', 
+        alpha=.2)
+
+    # Hydrogen core burning
+    row_start, row_end = get_hydrogen_core_burning(model)
+    ax.plot(
+        x[row_start:row_end], 
+        y[row_start:row_end], 
+        lw=1, 
+        color='green')
+
+    # Helium core burning
+    row_start, row_end = get_helium_core_burning(model)
+    ax.plot(
+        x[row_start:row_end], 
+        y[row_start:row_end], 
+        lw=1, 
+        color='blue')
+
+    multicolor_ylabel(ax,('Core hydrogen','Core helium'),('blue','green'), axis='yright', size=14, weight='bold')
 
     # Set margins around figure
     ax.margins(0, 0)
 
-    # Show plot
     fig.tight_layout()
-    plt.show()
 
     # Save
     if save:
-        plt.savefig(f"Output/dens_temp_{model.hist.data['star_mass'][0]}M", dpi=200)
+        plt.savefig(f"../Output/dens_temp_{model.hist.data['star_mass'][0]}M.png", dpi=200)
 
-
-def set_grad_line(ax, x, y, cmap_vals, cmap):
-    """
-    Plot gradient line
-    """
-
-    points = np.array([x, y]).T.reshape(-1, 1, 2)
-    segments = np.concatenate([points[:-1], points[1:]], axis=1)
-    lc = LineCollection(
-            segments, 
-            cmap=cmap,
-            norm=plt.Normalize(min(cmap_vals), max(cmap_vals)))
-
-    # Assign each line segment to a color
-    lc.set_array(cmap_vals)
-
-    # Set line widht
-    lc.set_linewidth(3)
-
-    # Add linesegments to axis
-    line = ax.add_collection(lc)
-
-    return line
+    # Show
+    plt.show()
 
 
 def set_eos_regimes(ax, mu, mu_e):
@@ -90,11 +81,11 @@ def set_eos_regimes(ax, mu, mu_e):
 
     FACE_COLOR_BASE = 'red'
     LABEL_FONT_SIZE = 'small'
-    rho_range = [.6, 7.2]  
+    rho_range = [-6, 9]  
 
     # Radiation
     temp_bot = [np.log10(rad_gas_eq(10**rho_range[0], mu)), np.log10(rad_gas_eq(10**rho_range[-1], mu))]
-    temp_top = temp_bot[-1]
+    temp_top = 11
     ax.fill_between(
         rho_range, 
         temp_bot, 
@@ -103,8 +94,8 @@ def set_eos_regimes(ax, mu, mu_e):
         linewidth=0.0,
         alpha=0.1)
     ax.text(
-        1, 
-        8.2, 
+        -5, 
+        6.2, 
         'Radiation', 
         fontsize=LABEL_FONT_SIZE,
         color=FACE_COLOR_BASE,
@@ -124,12 +115,12 @@ def set_eos_regimes(ax, mu, mu_e):
         alpha=0,
         label='ND')
     ax.text(
-        1, 
-        6, 
+        -5, 
+        2.2, 
         'Ideal gas', 
         fontsize=LABEL_FONT_SIZE,
         color=FACE_COLOR_BASE,
-        rotation=40)
+        rotation=37)
    
     # Electron degeneray 
     rho_start = rho_range[0]
@@ -145,20 +136,21 @@ def set_eos_regimes(ax, mu, mu_e):
         alpha=0.07,
         label='ND')
     ax.text(
-        2.1, 
-        6, 
+        -3.2, 
+        2.2, 
         'Electron degeneracy', 
         fontsize=LABEL_FONT_SIZE,
         color=FACE_COLOR_BASE,
-        rotation=40)
+        rotation=37)
 
     # Relativistic
     rho_start = np.log10(NR_R_eq(mu_e))
+    rho_R_ER = np.log10(R_ER_eq(mu_e))
     rho_end = rho_range[-1]
-    temp_top = [np.log10(gas_NR_eq(10**rho_start, mu, mu_e)), np.log10(gas_NR_eq(10**rho_end, mu, mu_e))]
+    temp_top = [np.log10(gas_NR_eq(10**rho_start, mu, mu_e)), np.log10(gas_ER_eq(10**rho_R_ER, mu, mu_e)), np.log10(gas_ER_eq(10**rho_end, mu, mu_e))]
     temp_bot = np.log10(gas_NR_eq(10**rho_range[0], mu, mu_e))
     ax.fill_between(
-        [rho_start, rho_end], 
+        [rho_start, rho_R_ER ,rho_end], 
         temp_bot, 
         temp_top, 
         facecolor=FACE_COLOR_BASE, 
@@ -166,12 +158,12 @@ def set_eos_regimes(ax, mu, mu_e):
         alpha=0.15,
         label='Relativistic')
     ax.text(
-        6.1, 
+        6.4, 
         8.7, 
         'Relativistic', 
         fontsize=LABEL_FONT_SIZE,
         color=FACE_COLOR_BASE,
-        rotation=40)
+        rotation=20)
 
 
 def rad_gas_eq(rho, mu):
@@ -205,4 +197,61 @@ def NR_R_eq(mu_e):
     """
 
     return 9.7 * 10**5 * mu_e
+
+
+def gas_ER_eq(rho, mu, mu_e):
+    """
+    Ideal gas pressure equals extremely relativistic degeneracy pressure
+
+    Return:
+    temperature
+    """
+
+    return 1.50 * 10**7 * mu * mu_e**(-4/3) * rho**(1/3)
+
+
+def R_ER_eq(mu_e):
+    """
+    Relativistic pressure equals extremely relativistic pressure
+
+    Return:
+    density
+    """
+
+    return ((1.50 * 10**7)/(1.21 * 10**5))**3 * mu_e
+
+
+def multicolor_ylabel(ax, list_of_strings, list_of_colors, axis='x', anchorpad=0, **kw):
+    """this function creates axes labels with multiple colors
+    ax specifies the axes object where the labels should be drawn
+    list_of_strings is a list of all of the text items
+    list_if_colors is a corresponding list of colors for the strings
+    axis='x', 'y', or 'both' and specifies which label(s) should be drawn"""
+
+    # x-axis label
+    if axis=='x' or axis=='both':
+        boxes = [TextArea(text, textprops=dict(color=color, ha='left',va='bottom',**kw)) 
+                    for text,color in zip(list_of_strings,list_of_colors) ]
+        xbox = HPacker(children=boxes,align="center",pad=0, sep=5)
+        anchored_xbox = AnchoredOffsetbox(loc=3, child=xbox, pad=anchorpad,frameon=False,bbox_to_anchor=(0.2, -0.09),
+                                        bbox_transform=ax.transAxes, borderpad=0.)
+        ax.add_artist(anchored_xbox)
+
+    # y-axis label
+    if axis=='yleft' or axis=='both':
+        boxes = [TextArea(text, textprops=dict(color=color, ha='left',va='bottom',rotation=90,**kw)) 
+                    for text,color in zip(list_of_strings[::-1],list_of_colors) ]
+        ybox = VPacker(children=boxes,align="center", pad=0, sep=50)
+        anchored_ybox = AnchoredOffsetbox(loc=3, child=ybox, pad=anchorpad, frameon=False, bbox_to_anchor=(-.20, 0.05), 
+                                        bbox_transform=ax.transAxes, borderpad=0.)
+        ax.add_artist(anchored_ybox)
+    
+    # y-axis label
+    if axis=='yright' or axis=='both':
+        boxes = [TextArea(text, textprops=dict(color=color, ha='left',va='bottom',rotation=90,**kw)) 
+                    for text,color in zip(list_of_strings[::-1],list_of_colors) ]
+        ybox = VPacker(children=boxes,align="center", pad=0, sep=30)
+        anchored_ybox = AnchoredOffsetbox(loc=3, child=ybox, pad=anchorpad, frameon=False, bbox_to_anchor=(1.05, 0.05), 
+                                        bbox_transform=ax.transAxes, borderpad=0.)
+        ax.add_artist(anchored_ybox)
 

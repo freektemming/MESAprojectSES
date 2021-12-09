@@ -8,7 +8,7 @@ from .plotfunctions import *
 import numpy as np
 import matplotlib.pyplot as plt
 
-def plot(model, elements, zoom):
+def plot(model, elements, zoom=False, save=False):
     """
     Creates abundence of user input elements over time
 
@@ -16,7 +16,7 @@ def plot(model, elements, zoom):
     model : mesaplot model
     """
 
-    TITLE = f"{' '.join([str(elem) for elem in elements])} abundance"
+    TITLE = f"{', '.join([str(elem) for elem in elements])} abundance"
     X_LABEL = 'Time [Myr]'
     Y_LABEL = 'Mass Fraction [m/M$_{\star}$]' 
     ISOTOPES = {
@@ -29,10 +29,9 @@ def plot(model, elements, zoom):
     # Make figure
     fig, ax = set_fig(TITLE, X_LABEL, Y_LABEL)
     
-    # abundance on main sequence
+    # Abundance on helium core burning phase
     if zoom == True:
-        row_start, row_end = get_helium_burning_phase(model)
-    
+        row_start, row_end = get_helium_core_burning(model)
     # Abundance on main sequence
     else:
         row_start, row_end = get_main_sequence(model)
@@ -41,12 +40,16 @@ def plot(model, elements, zoom):
     for element in elements:
         ax.plot(
             x, 
-            model.hist.data[f'{ISOTOPES[element]}'][row_start:row_end], 
+            model.hist.data[ISOTOPES[element]][row_start:row_end], 
             label=element) 
 
     # Legend
-    ax.legend(shadow=False, edgecolor='white', fancybox=False)
+    ax.legend(shadow=False, edgecolor='white', fancybox=False, fontsize="small", facecolor='none')
     
-    # Show
     plt.tight_layout()
+
+    if save:
+        plt.savefig(f"../Output/abundance_{'-'.join([str(elem) for elem in elements])}_{model.hist.data['star_mass'][0]}M.png", dpi=200)
+
+    # Show
     plt.show()

@@ -30,33 +30,25 @@ def plot(model, save=False):
 
     mass = model.hist.data['star_mass'][0]
     TITLE = f'Kippenhahn {mass}M''$_{\odot}$'
-    X_LABEL = 'Time [Myr]'
+    X_LABEL = 'Model Number'
     Y_LABEL = 'm / M$_{\star}$'  
     CMAP = plt.get_cmap('cool')  
 
     # Make figure
     fig, ax = set_fig(TITLE, X_LABEL, Y_LABEL)
 
-    # Main sequence
+    # Full track starting at main sequence
     row_start, row_end = get_main_sequence(model)
+    row_end = -1
    
     # colormap = plt.cm.cividis_r
     colormap = plt.cm.cubehelix
 
     # ax.set_xticks([0.0648,3.12,4.76])
     # ax.set_xticklabels(['Zams', 'Mid','Tams'])
-
-    # list for x-axis structure plot
-    # baseZ = zams.age()
-    # baseM = mid.age()
-    # baseT = tams.age()
-
-    # BaseZams = [baseZ] * len(zams.normR)
-    # BaseMid = [baseM] * len(mid.normR)
-    # BaseTams = [baseT] * len(tams.normR)
-    
-    # ------ Plot Lines ------
-    age = model.hist.data['star_age']/1000000
+        
+    # age = model.hist.data['star_age']/1000000 # Time axis in M years
+    age = model.hist.data['model_number'] # Time axis in model number
     hydrogen = model.hist.data['center_h1']
     helium = model.hist.data['center_he4']
     carbon = model.hist.data['center_c12']
@@ -64,28 +56,6 @@ def plot(model, save=False):
     ax.plot(age[row_start:row_end], helium[row_start:row_end], color = 'green', label = 'Helium')
     ax.plot(age[row_start:row_end], carbon[row_start:row_end], color = 'blue', label = 'Carbon')
     
-    # ------ Plot Colors ------
-    # ims1 = ax.scatter(BaseZams, zams.normM * model.nmass[zams.model() - model.x], c= zams.mixtype, marker='_', edgecolors='none', s=100, cmap=colormap, vmin = 0, vmax = 6, zorder = 2)
-    # ims2 = ax.scatter(BaseMid, mid.normM * model.nmass[mid.model() - model.x], c= mid.mixtype, marker='_', edgecolors='none', s=100, cmap=colormap, vmin = 0, vmax = 6, zorder = 2)
-    # ims3 = ax.scatter(BaseTams, tams.normM * model.nmass[tams.model() - model.x], c= tams.mixtype, marker='_', edgecolors='none', s=100, cmap=colormap, vmin = 0, vmax = 6, zorder = 2)
-    # cbar1 = fig.colorbar(ims1, ax = ax)
-    # cbar1.set_label('Zones')
-
-    # Radiative envelope
-    # ax.fill_between(
-    #     age[row_start:row_end], 
-    #     model.hist.data['conv_mx1_top'][row_start:row_end], 
-    #     model.hist.data['star_mass'][row_start:row_end]/mass, 
-    #     alpha=0.2, 
-    #     color='grey', 
-    #     hatch='|||')
-    # ax.text(
-    #     1, 
-    #     1 - (1 - model.hist.data['conv_mx1_top'][row_start])/2, 
-    #     'Radiative envelope', 
-    #     fontweight='bold',
-    #     color='gray')
-
     # Convective regions
     ax.fill_between(
         age[row_start:row_end], 
@@ -97,7 +67,7 @@ def plot(model, save=False):
         age[row_start:row_end], 
         model.hist.data['conv_mx2_top'][row_start:row_end], 
         model.hist.data['conv_mx2_bot'][row_start:row_end], 
-        facecolor="gainsboro", 
+        facecolor="gainsboro",  
         linewidth=0.0)
 
     # Convective core
@@ -108,23 +78,41 @@ def plot(model, save=False):
         conv_core_mass_norm, 
         facecolor="gainsboro", 
         linewidth=0.0)
-    ax.text(
-        1, 
-        conv_core_mass_norm[0]/2, 
-        'Convective core', 
-        color='k')
+
+    # Active burning regions
+    plt.rcParams['hatch.color'] = 'k'
+    plt.rcParams['hatch.linewidth'] = 0.5
+    ax.fill_between(
+        age[row_start:row_end], 
+        model.hist.data['epsnuc_M_1'][row_start:row_end]/(model.hist.data['star_mass'][row_start:row_end] * M_SUN), 
+        model.hist.data['epsnuc_M_4'][row_start:row_end]/(model.hist.data['star_mass'][row_start:row_end] * M_SUN), 
+        alpha=0.1,
+        color="red",
+        hatch="",
+        linewidth=0.0)
+
+    ax.fill_between(
+        age[row_start:row_end], 
+        model.hist.data['epsnuc_M_5'][row_start:row_end]/(model.hist.data['star_mass'][row_start:row_end] * M_SUN), 
+        model.hist.data['epsnuc_M_8'][row_start:row_end]/(model.hist.data['star_mass'][row_start:row_end] * M_SUN), 
+        alpha=0.1,
+        color='red',
+        hatch="",
+        linewidth=0.0)
     
     # Plot labels around axis
     multicolor_ylabel(ax, ('Hydrogen','Helium','Carbon'),('blue','green','red'), axis='yleft', size=14, weight='bold')
     # multicolor_ylabel(ax,('Convection','Overshoot','Radiation'),('lightblue','seagreen','navy'),axis='yright',size=14,weight='bold')
+    multicolor_ylabel(ax,('Convective region','Nuclear burning'),('salmon','gray'), axis='yright', size=14, weight='bold')
 
-    # Show
     fig.tight_layout()
-    plt.show()
 
     # Save
     if save:
-        plt.savefig(f'Output/Kippenhahn_{mass}{limit}.png')
+        plt.savefig(f'../Output/Kippenhahn_{mass}M.png', dpi=200)
+
+    # Show
+    plt.show()
 
 
 def multicolor_ylabel(ax, list_of_strings, list_of_colors, axis='x', anchorpad=0, **kw):
@@ -148,7 +136,7 @@ def multicolor_ylabel(ax, list_of_strings, list_of_colors, axis='x', anchorpad=0
         boxes = [TextArea(text, textprops=dict(color=color, ha='left',va='bottom',rotation=90,**kw)) 
                     for text,color in zip(list_of_strings[::-1],list_of_colors) ]
         ybox = VPacker(children=boxes,align="center", pad=0, sep=50)
-        anchored_ybox = AnchoredOffsetbox(loc=3, child=ybox, pad=anchorpad, frameon=False, bbox_to_anchor=(-.15, 0.05), 
+        anchored_ybox = AnchoredOffsetbox(loc=3, child=ybox, pad=anchorpad, frameon=False, bbox_to_anchor=(-.20, 0.05), 
                                         bbox_transform=ax.transAxes, borderpad=0.)
         ax.add_artist(anchored_ybox)
     
@@ -157,6 +145,6 @@ def multicolor_ylabel(ax, list_of_strings, list_of_colors, axis='x', anchorpad=0
         boxes = [TextArea(text, textprops=dict(color=color, ha='left',va='bottom',rotation=90,**kw)) 
                     for text,color in zip(list_of_strings[::-1],list_of_colors) ]
         ybox = VPacker(children=boxes,align="center", pad=0, sep=30)
-        anchored_ybox = AnchoredOffsetbox(loc=3, child=ybox, pad=anchorpad, frameon=False, bbox_to_anchor=(1.1, 0.05), 
+        anchored_ybox = AnchoredOffsetbox(loc=3, child=ybox, pad=anchorpad, frameon=False, bbox_to_anchor=(1.05, 0.05), 
                                         bbox_transform=ax.transAxes, borderpad=0.)
         ax.add_artist(anchored_ybox)
