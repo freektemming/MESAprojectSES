@@ -57,6 +57,8 @@ def get_helium_burning_phase(model):
 
         # When hydrogen is burned up in the core
         if center_h < 0.01:
-            return index, -1
+            for center_he in model.hist.data['center_he4'][index:-1]:
+                if center_he < 0.98:
+                    return index, -1
 
         index += 1
